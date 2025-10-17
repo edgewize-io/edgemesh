@@ -23,9 +23,12 @@ var defaultKubeConfig = &KubeAPIConfig{
 		Security: &MetaServerSecurity{
 			RequireAuthorization:  false,
 			InsecureSkipTLSVerify: false,
-			TLSCaFile:             defaults.MetaServerCaFile,
-			TLSCertFile:           defaults.MetaServerCertFile,
-			TLSPrivateKeyFile:     defaults.MetaServerKeyFile,
+			// CA certificate for verifying server certificate
+			TLSCaFile: defaults.MetaServerCaFile,
+			// Client certificate is optional, only needed for mutual TLS
+			// Most scenarios (ServiceAccount authentication) don't need these
+			TLSCertFile:       "",
+			TLSPrivateKeyFile: "",
 		},
 	},
 	DeleteKubeConfig: false,

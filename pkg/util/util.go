@@ -19,10 +19,21 @@ const (
 )
 
 func GenerateKubeClientConfig(c *v1alpha1.KubeAPIConfig) *clientcmdv1.Config {
+	// Get server address, prioritize environment variables (for edge authentication scenarios)
+	serverAddr := c.MetaServer.Server
+	if host := os.Getenv("KUBERNETES_SERVICE_HOST"); host != "" {
+		if port := os.Getenv("KUBERNETES_SERVICE_PORT"); port != "" {
+			// Use environment variables to construct metaServer address
+			scheme := "https"
+			serverAddr = scheme + "://" + host + ":" + port
+			klog.Infof("Using metaServer address from environment variables: %s", serverAddr)
+		}
+	}
+
 	namedCluster := clientcmdv1.NamedCluster{
 		Name: clusterName,
 		Cluster: clientcmdv1.Cluster{
-			Server: c.MetaServer.Server,
+			Server: serverAddr,
 		},
 	}
 	namedContext := clientcmdv1.NamedContext{
@@ -38,14 +49,23 @@ func GenerateKubeClientConfig(c *v1alpha1.KubeAPIConfig) *clientcmdv1.Config {
 	}
 
 	if c.MetaServer.Security.RequireAuthorization {
+		// Use ServiceAccount token for authentication
 		namedAuthInfo.AuthInfo.TokenFile = saTokenPath
+
 		if c.MetaServer.Security.InsecureSkipTLSVerify {
+			// Skip TLS verification (not recommended for production)
 			namedCluster.Cluster.InsecureSkipTLSVerify = true
 		} else {
-			// use tls access metaServer
+			// Use CA certificate to verify server certificate
 			namedCluster.Cluster.CertificateAuthority = c.MetaServer.Security.TLSCaFile
-			namedAuthInfo.AuthInfo.ClientCertificate = c.MetaServer.Security.TLSCertFile
-			namedAuthInfo.AuthInfo.ClientKey = c.MetaServer.Security.TLSPrivateKeyFile
+
+			// Optional: Client certificate for mutual TLS (if metaServer requires it)
+			// Note: ServiceAccount authentication typically only needs CA cert + token
+			// Client certificate is only needed for mutual TLS scenarios
+			if c.MetaServer.Security.TLSCertFile != "" && c.MetaServer.Security.TLSPrivateKeyFile != "" {
+				namedAuthInfo.AuthInfo.ClientCertificate = c.MetaServer.Security.TLSCertFile
+				namedAuthInfo.AuthInfo.ClientKey = c.MetaServer.Security.TLSPrivateKeyFile
+			}
 		}
 	}
 
