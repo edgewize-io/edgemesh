@@ -1,0 +1,46 @@
+apiVersion: kubesphere.io/v1alpha1
+name: edgemesh
+namespace: kubeedge
+version: 1.17.1
+displayName:
+  zh: Edgemesh
+  en: Edgemesh
+description:
+  zh: ""
+  en: ""
+category: edge-computing
+keywords:
+  - Edge
+  - Computing
+  - Observability
+  - Monitoring
+  - KubeEdge
+  - OpenYurt
+home: https://kubesphere.io
+sources:
+  - https://github.com/edgewize-io
+kubeVersion: ">=1.21.0"
+ksVersion: ">=4.1.0-0"
+maintainers:
+  - name: "青云科技"
+    email: "support@kubesphere.cloud"
+    url: "https://www.qingcloud.com"
+provider:
+  zh:
+    name: "青云科技"
+    email: "support@kubesphere.cloud"
+    url: "https://www.qingcloud.com"
+  en:
+    name: "QingCloud"
+    email: "support@kubesphere.cloud"
+    url: "https://www.qingcloud.com"
+icon: ./static/favicon.svg
+dependencies:
+  - name: agent
+    version: latest
+  - name: spiderpool
+    version: 0.9.1
+    condition: agent.modules.edgeCNI.enable
+
+images:
+- docker.io/edgewize/edgemesh-agent:v1.17.1
