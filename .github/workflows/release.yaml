@@ -8,7 +8,7 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 env:
-  IMAGE_REPO: kubeedge
+  IMAGE_REPO: edgewize
   IMAGE_TAG: latest
 
 jobs:

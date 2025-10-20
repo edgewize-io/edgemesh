@@ -111,6 +111,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     name: Docker image build
+    env:
+      IMAGE_REPO: edgewize
     steps:
       - name: Install Go
         uses: actions/setup-go@v3
@@ -127,12 +129,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: make images
+      - name: login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USER_NAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - run: IMAGE_REPO=${{ env.IMAGE_REPO }} make images
 
   docker_cross_build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     name: Docker cross build images
+    env:
+      IMAGE_REPO: edgewize
     steps:
       - name: Install Go
         uses: actions/setup-go@v3
@@ -149,7 +159,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: make docker-cross-build
+      - name: login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USER_NAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - run: IMAGE_REPO=${{ env.IMAGE_REPO }} make docker-cross-build
 
   check_helm_pkg:
     runs-on: ubuntu-latest
