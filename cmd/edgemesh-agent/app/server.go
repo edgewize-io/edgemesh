@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 	cliflag "k8s.io/component-base/cli/flag"
@@ -152,10 +151,14 @@ func prepareRun(c *v1alpha1.EdgeMeshAgentConfig) error {
 		c.KubeAPIConfig.Mode = defaults.ManualMode
 	} else {
 		if c.KubeAPIConfig.Mode == defaults.EdgeMode {
-			// If the security feature of metaServer is set, then the address
-			// of metaServer must be replaced with the https schema
-			if c.KubeAPIConfig.MetaServer.Security.RequireAuthorization {
-				c.KubeAPIConfig.MetaServer.Server = strings.ReplaceAll(c.KubeAPIConfig.MetaServer.Server, "http://", "https://")
+			// Check if metaServer address is provided via environment variables
+			// This supports edge authentication scenarios using ServiceAccount
+			if host := os.Getenv("KUBERNETES_SERVICE_HOST"); host != "" {
+				if port := os.Getenv("KUBERNETES_SERVICE_PORT"); port != "" {
+					scheme := "https"
+					c.KubeAPIConfig.MetaServer.Server = scheme + "://" + host + ":" + port
+					klog.Infof("Using metaServer address from environment variables: %s", c.KubeAPIConfig.MetaServer.Server)
+				}
 			}
 			// Create a kubeConfig file on local path for subsequent builds of K8s
 			// client-go's kubeClient. If it already exists, we don't create it again.
