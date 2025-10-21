@@ -82,6 +82,7 @@ agent:
   modules:
     edgeProxy:
       enable: true
+      serviceFilterMode: FilterIfLabelDoesNotExists
     edgeTunnel:
       enable: true
     edgeCNI:
